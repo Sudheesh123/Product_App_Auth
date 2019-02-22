@@ -1,6 +1,6 @@
-const Todo = require('../models/todo.model');
+const Todo = require('../models/todoListmodel');
+const Login = require('../models/todoLoginmodel');
 var auth = require('basic-auth')
-var compare = require('tsscmp')
 var current_user;
 //Simple version, without validation or sanitation
 exports.test = function (req, res) {
@@ -8,31 +8,30 @@ exports.test = function (req, res) {
 };
 
 exports.todo_authenticate= function(req,res){
-    var credentials = auth(req);
-
-
-
-    if (!credentials || !check(credentials.name, credentials.pass)) {
-        res.statusCode = 401;
-        res.setHeader('WWW-Authenticate', 'Basic realm="MyRealmName"');
-        res.end('Unauthorized');
-    } else {
-        current_user = credentials.name;
-        res.writeHead(301, { Location: 'http://localhost:8000/todo/all' });
-        console.log("authorized");
-       res.end();
+   // var credentials = auth(req);
+   var user=req.body.username;
+   var pass=req.body.password;
+   if(user)
+    {
+        Login.findOne({username:user,password:pass},function(err,temp){
+            console.log(temp);
+            if(temp){
+                current_user = user;
+                res.writeHead(301, { Location: 'http://localhost:8000/todo/all' });
+                console.log("authorized");
+                res.end();
+            }
+            else{
+                res.statusCode = 401;
+                current_user=null;
+                //res.setHeader('WWW-Authenticate', 'Basic realm="MyRealmName"');
+                res.end('Unauthorized');
+            }
+        });
     }
+    else console.log("Improper Credentials");
 };
 
-function check (name, pass) {
-    var valid = true
-   
-    // Simple method to prevent short-circut and use timing-safe compare
-    valid = compare(name, 'username') && valid
-    valid = compare(pass, 'password') && valid
-   
-    return valid
-  }
 
 exports.todo_create = function (req, res) {
     let todo = new Todo(
@@ -81,3 +80,35 @@ exports.todo_delete = function (req, res) {
     })
 };
 
+
+
+
+/*
+This is a basic cheking function which checks the username and password using String instead of DB
+
+if (!name || !check(name, password)) {
+    res.statusCode = 401;
+    res.setHeader('WWW-Authenticate', 'Basic realm="MyRealmName"');
+    res.end('Unauthorized');
+
+} else {
+    current_user = name;
+    res.writeHead(301, { Location: 'http://localhost:8000/todo/all' });
+    console.log("authorized");
+    res.end();
+}
+
+
+
+function check (name, pass) {
+    var valid = true
+   
+    // Simple method to prevent short-circut and use timing-safe compare
+    password=Login.findOne({username:name},{password:1,_id:0})
+    console.log(password.password)
+    valid = compare(name, 'username') && valid
+    valid = compare(pass, 'password') && valid
+   
+    return valid
+  }
+*/

@@ -24,12 +24,9 @@ router.get('/auth',function(req,res){
 });
 
 function check (name, pass) {
-    var valid = true
-   
-    // Simple method to prevent short-circut and use timing-safe compare
-    valid = compare(name, 'username') && valid
-    valid = compare(pass, 'password') && valid
-   
+    var valid = true;
+    valid = compare(name, 'username') && valid;
+    valid = compare(pass, 'password') && valid;
     return valid
   }
 
